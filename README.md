@@ -1,4 +1,13 @@
-package.json
-index.js
-Procfile
-README.md
+{
+  "name": "whasap-bot",
+  "version": "1.0.0",
+  "description": "WhatsApp bot for Railway",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.7.9",
+    "pino": "^9.2.0"
+  }
+}

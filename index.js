@@ -1,50 +1,44 @@
-const express = require("express");
-const { default: makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion } = require("@whiskeysockets/baileys");
-const pino = require("pino");
+const fs = require("fs");
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+let makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion;
 
-app.get("/", (req, res) => {
-  res.send("HELLO, WORLD!");
-});
+(async () => {
+  const baileys = await import("@whiskeysockets/baileys");
+  makeWASocket = baileys.default;
+  useMultiFileAuthState = baileys.useMultiFileAuthState;
+  fetchLatestBaileysVersion = baileys.fetchLatestBaileysVersion;
 
-async function startSock() {
-  const { state, saveCreds } = await useMultiFileAuthState("auth");
+  startBot();
+})();
+
+async function startBot() {
+  const { state, saveCreds } = await useMultiFileAuthState("./auth");
   const { version } = await fetchLatestBaileysVersion();
-  
+
   const sock = makeWASocket({
     version,
     auth: state,
-    logger: pino({ level: "silent" })
+    printQRInTerminal: false
   });
 
   sock.ev.on("creds.update", saveCreds);
-  
+
   sock.ev.on("connection.update", async (update) => {
-    const { connection, lastDisconnect } = update;
-    
-    if (!sock.authState.creds.registered) {
-      const phoneNumber = "22870461278";
-      const code = await sock.requestPairingCode(phoneNumber);
-      console.log(`\n\n========== TON CODE ==========\n`);
-      console.log(`Ton code de couplage : ${code}`);
-      console.log(`\n==============================\n\n`);
+    const { connection, pairingCode } = update;
+
+    if (pairingCode) {
+      console.log("========== TON CODE ==========");
+      console.log(`Ton code de couplage : ${pairingCode}`);
+      console.log("==============================");
     }
-    
+
     if (connection === "open") {
-      console.log("✅ Bot connecté !");
+      console.log("Connecté à WhatsApp ✅");
     }
-    
+
     if (connection === "close") {
-      console.log("Connexion fermée, redémarrage...");
-      startSock();
+      console.log("Connexion fermée, reconnexion...");
+      startBot();
     }
   });
 }
-
-startSock();
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});

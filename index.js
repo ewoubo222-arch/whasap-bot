@@ -1,46 +1,39 @@
-const { default: makeWASocket, useMultiFileAuthState, DisconnectReason } = require('@whiskeysockets/baileys')
-const express = require('express')
-const pino = require('pino')
+const express = require("express");
+const { default: makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion } = require("@whiskeysockets/baileys");
+const pino = require("pino");
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-const app = express()
-const port = process.env.PORT || 10000
+app.get("/", (req, res) => {
+  res.send("HELLO, WORLD!");
+});
 
-app.get('/', (req, res) => {
-  res.send('WhatsApp Bot is running ✅')
-})
-
-async function startBot() {
-  const { state, saveCreds } = await useMultiFileAuthState('auth_info')
+async function startSock() {
+  const { state, saveCreds } = await useMultiFileAuthState("auth");
+  const { version } = await fetchLatestBaileysVersion();
   
   const sock = makeWASocket({
+    version,
     auth: state,
-    logger: pino({ level: 'silent' }),
-    printQRInTerminal: false
-  })
+    printQRInTerminal: true,
+    logger: pino({ level: "info" })
+  });
 
-  sock.ev.on('connection.update', (update) => {
-    const { connection, qr, lastDisconnect } = update
-    
+  sock.ev.on("creds.update", saveCreds);
+  
+  sock.ev.on("connection.update", (update) => {
+    const { connection, qr } = update;
     if (qr) {
-      console.log("QR:", qr)
+      console.log("QR: " + qr);
     }
-    
-    if (connection === 'close') {
-      const shouldReconnect = (lastDisconnect.error?.output?.statusCode !== DisconnectReason.loggedOut)
-      if (shouldReconnect) startBot()
+    if (connection === "open") {
+      console.log("✅ Bot connecté !");
     }
-    
-    if (connection === 'open') {
-      console.log('Connecté à WhatsApp ✅')
-    }
-  })
-
-  sock.ev.on('creds.update', saveCreds)
+  });
 }
 
-startBot()
+startSock();
 
-app.listen(port, () => {
-  console.log('HELLO, WORLD!')
-  console.log(`Server running on port ${port}`)
-}) 
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});

@@ -15,17 +15,21 @@ async function startSock() {
   const sock = makeWASocket({
     version,
     auth: state,
-    printQRInTerminal: true,
+    printQRInTerminal: false,
     logger: pino({ level: "info" })
   });
 
   sock.ev.on("creds.update", saveCreds);
   
-  sock.ev.on("connection.update", (update) => {
-    const { connection, qr } = update;
-    if (qr) {
-      console.log("QR: " + qr);
+  sock.ev.on("connection.update", async (update) => {
+    const { connection } = update;
+    
+    if (!sock.authState.creds.registered) {
+      const phoneNumber = "22890470689";
+      const code = await sock.requestPairingCode(phoneNumber);
+      console.log("CODE D'APPAIRAGE:", code);
     }
+    
     if (connection === "open") {
       console.log("✅ Bot connecté !");
     }

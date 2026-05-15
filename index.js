@@ -18,7 +18,7 @@ async function startBot() {
     
     if (qr) {
       console.log('Scan ce QR code avec WhatsApp :');
-      qrcode.generate(qr, { small: true });
+      qrcode.generate(qr, { small: false });
     }
 
     if (connection === 'close') {

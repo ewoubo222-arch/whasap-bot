@@ -43,4 +43,4 @@ startBot()
 app.listen(port, () => {
   console.log('HELLO, WORLD!')
   console.log(`Server running on port ${port}`)
-})
+}) 

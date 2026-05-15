@@ -1,6 +1,7 @@
 const express = require("express");
 const { default: makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion } = require("@whiskeysockets/baileys");
 const pino = require("pino");
+const qrcode = require("qrcode-terminal");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -15,7 +16,6 @@ async function startSock() {
   const sock = makeWASocket({
     version,
     auth: state,
-    printQRInTerminal: true,  // <-- Ça va afficher le QR dans les logs
     logger: pino({ level: "info" })
   });
 
@@ -25,7 +25,10 @@ async function startSock() {
     const { connection, qr } = update;
     
     if (qr) {
-      console.log("SCAN CE QR CODE DANS WHATSAPP:");
+      console.log("SCANE CE QR CODE :");
+      qrcode.generate(qr, { small: true });
+      console.log("Ou ouvre ce lien sur ton téléphone et scanne :");
+      console.log(`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qr)}`);
     }
     
     if (connection === "open") {

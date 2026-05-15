@@ -15,19 +15,17 @@ async function startSock() {
   const sock = makeWASocket({
     version,
     auth: state,
-    printQRInTerminal: false,
+    printQRInTerminal: true,  // <-- Ça va afficher le QR dans les logs
     logger: pino({ level: "info" })
   });
 
   sock.ev.on("creds.update", saveCreds);
   
-  sock.ev.on("connection.update", async (update) => {
-    const { connection } = update;
+  sock.ev.on("connection.update", (update) => {
+    const { connection, qr } = update;
     
-    if (!sock.authState.creds.registered) {
-      const phoneNumber = "22870461278";
-      const code = await sock.requestPairingCode(phoneNumber);
-      console.log("CODE D'APPAIRAGE:", code);
+    if (qr) {
+      console.log("SCAN CE QR CODE DANS WHATSAPP:");
     }
     
     if (connection === "open") {

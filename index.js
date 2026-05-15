@@ -25,7 +25,7 @@ async function startSock() {
     const { connection } = update;
     
     if (!sock.authState.creds.registered) {
-      const phoneNumber = "22890470689";
+      const phoneNumber = "22870461278";
       const code = await sock.requestPairingCode(phoneNumber);
       console.log("CODE D'APPAIRAGE:", code);
     }

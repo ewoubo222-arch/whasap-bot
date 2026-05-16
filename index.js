@@ -1,7 +1,6 @@
 import express from 'express';
 import { makeWASocket, useMultiFileAuthState, DisconnectReason } from '@whiskeysockets/baileys';
 import pino from 'pino';
-import fs from 'fs';
 
 // 1. Serveur pour Render - évite "No open ports detected"
 const app = express();
@@ -16,19 +15,24 @@ async function startBot() {
   const sock = makeWASocket({
     auth: state,
     logger: pino({ level: 'silent' }),
-    printQRInTerminal: false, // on désactive le QR
-    pairingCode: true         // on force le code à 8 chiffres
+    printQRInTerminal: false,
+    pairingCode: true
   });
 
   sock.ev.on('creds.update', saveCreds);
 
   // 3. Demande le code à 8 chiffres si pas connecté
   if (!sock.authState.creds.registered) {
-    const phoneNumber = process.env.PHONE_NUMBER; // ex: 221771234567
+    const phoneNumber = process.env.PHONE_NUMBER; // ex: 22870461278
+    
     if (!phoneNumber) {
       console.log('Mets ton numéro dans les variables d\'environnement PHONE_NUMBER sur Render');
       return;
     }
+    
+    console.log('Attente 5 sec avant de demander le code...');
+    await new Promise(resolve => setTimeout(resolve, 5000));
+    
     const code = await sock.requestPairingCode(phoneNumber);
     console.log('==============================');
     console.log(`TON CODE : ${code}`);

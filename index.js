@@ -16,7 +16,8 @@ async function startBot() {
   const sock = makeWASocket({
     auth: state,
     logger: pino({ level: 'silent' }),
-    printQRInTerminal: false // on utilise le pairing code
+    printQRInTerminal: false, // on désactive le QR
+    pairingCode: true         // on force le code à 8 chiffres
   });
 
   sock.ev.on('creds.update', saveCreds);
@@ -41,7 +42,10 @@ async function startBot() {
       const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
       if (shouldReconnect) startBot();
     }
-  }); // <-- fermait pas ça
-} // <-- fermait pas ça
+    if (connection === 'open') {
+      console.log('Connecté à WhatsApp ✅');
+    }
+  });
+}
 
-startBot(); // <-- manquait ça
+startBot();

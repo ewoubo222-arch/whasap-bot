@@ -1,5 +1,6 @@
 {
-  "name": "whatsapp-bot",
+  "name": "whasap-bot",
+  "type": "module",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -8,7 +9,9 @@
   "dependencies": {
     "@whiskeysockets/baileys": "^6.6.0",
     "express": "^4.18.2",
-    "pino": "^8.17.0",
-    "qrcode-terminal": "^0.12.0"
+    "pino": "^9.0.0"
+  },
+  "engines": {
+    "node": "20.x"
   }
 }

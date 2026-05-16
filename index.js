@@ -3,48 +3,37 @@ import { makeWASocket, useMultiFileAuthState, DisconnectReason } from '@whiskeys
 import pino from 'pino';
 import fs from 'fs';
 
+// 1. Serveur pour Render - évite "No open ports detected"
 const app = express();
 const port = process.env.PORT || 10000;
 app.get('/', (req, res) => res.send('WhatsApp Bot is running'));
 app.listen(port, () => console.log(`Server running on port ${port}`));
 
+// 2. Fonction principale du bot
 async function startBot() {
-  // Reset l'ancienne session pour éviter l'erreur 428
-  if (fs.existsSync('./auth')) {
-    fs.rmSync('./auth', { recursive: true, force: true });
-    console.log('Ancienne session supprimée');
-  }
-
   const { state, saveCreds } = await useMultiFileAuthState('./auth');
   
   const sock = makeWASocket({
     auth: state,
     logger: pino({ level: 'silent' }),
-    printQRInTerminal: false,
-    pairingCode: true
+    printQRInTerminal: false, // on désactive le QR
+    pairingCode: true         // on force le code à 8 chiffres
   });
 
   sock.ev.on('creds.update', saveCreds);
 
+  // 3. Demande le code à 8 chiffres si pas connecté
   if (!sock.authState.creds.registered) {
-    const phoneNumber = process.env.PHONE_NUMBER;
-    
+    const phoneNumber = process.env.PHONE_NUMBER; // ex: 221771234567
     if (!phoneNumber) {
-      console.log('ERREUR: Mets PHONE_NUMBER dans les variables d\'environnement');
+      console.log('Mets ton numéro dans les variables d\'environnement PHONE_NUMBER sur Render');
       return;
     }
-    
-    console.log('Attente 10 sec avant de demander le code...');
-    await new Promise(resolve => setTimeout(resolve, 10000));
-    
-    try {
-      const code = await sock.requestPairingCode(phoneNumber);
-      console.log('==============================');
-      console.log(`TON CODE : ${code}`);
-      console.log('==============================');
-    } catch (e) {
-      console.log('Erreur pairing code:', e.output?.payload?.message || e.message);
-    }
+    const code = await sock.requestPairingCode(phoneNumber);
+    console.log('==============================');
+    console.log(`TON CODE : ${code}`);
+    console.log('Va dans WhatsApp > Appareils connectés > Lier avec un numéro');
+    console.log('==============================');
   }
 
   sock.ev.on('connection.update', (update) => {

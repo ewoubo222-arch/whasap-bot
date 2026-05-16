@@ -41,3 +41,7 @@ async function startBot() {
       const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
       if (shouldReconnect) startBot();
     }
+  }); // <-- fermait pas ça
+} // <-- fermait pas ça
+
+startBot(); // <-- manquait ça
